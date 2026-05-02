@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Container, Typography, Box, CircularProgress, Alert, Pagination } from "@mui/material";
+import { Container, Typography, Box, CircularProgress, Alert } from "@mui/material";
 import axios from "axios";
 import Navbar from "../components/Navbar";
 import NotificationCard, { Notification } from "../components/NotificationCard";
@@ -12,7 +12,6 @@ export default function AllNotificationsPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [readIds, setReadIds] = useState<Set<string>>(new Set());
-  const [page, setPage] = useState(1);
 
   useEffect(() => {
     // Load read status from localStorage
@@ -20,19 +19,15 @@ export default function AllNotificationsPage() {
     if (savedReadIds) {
       setReadIds(new Set(JSON.parse(savedReadIds)));
     }
+
+    fetchNotifications();
   }, []);
 
-  useEffect(() => {
-    fetchNotifications();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [page]);
-
   const fetchNotifications = async () => {
-    setLoading(true);
     try {
-      Log("frontend", "info", "api", `Fetching ALL notifications, page=${page}`);
+      Log("frontend", "info", "api", "Fetching ALL notifications");
       // No auth header needed — proxy handles token server-side
-      const response = await axios.get(`/api/notifications?limit=10&page=${page}`);
+      const response = await axios.get("/api/notifications?limit=50");
       
       const data = response.data.notifications || response.data;
       setNotifications(Array.isArray(data) ? data : []);
@@ -80,15 +75,6 @@ export default function AllNotificationsPage() {
                 onMarkRead={handleMarkRead}
               />
             ))}
-            <Box sx={{ display: "flex", justifyContent: "center", mt: 4, mb: 4 }}>
-              <Pagination 
-                count={10} 
-                page={page} 
-                onChange={(_, v) => setPage(v)} 
-                color="primary"
-                size="large"
-              />
-            </Box>
           </Box>
         )}
       </Container>
