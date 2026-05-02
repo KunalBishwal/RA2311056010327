@@ -1,45 +1,37 @@
-import { AppBar, Toolbar, Typography, Button, Box, TextField } from "@mui/material";
+"use client";
+
+import { AppBar, Toolbar, Typography, Button, Box } from "@mui/material";
 import Link from "next/link";
 import NotificationsIcon from "@mui/icons-material/Notifications";
-import { useEffect, useState } from "react";
-import { getToken, setToken } from "../utils/token";
+import { usePathname } from "next/navigation";
 
 export default function Navbar() {
-  const [tokenInput, setTokenInput] = useState("");
-
-  useEffect(() => {
-    const saved = getToken();
-    if (saved) setTokenInput(saved);
-  }, []);
-
-  const handleTokenChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const val = e.target.value;
-    setTokenInput(val);
-    setToken(val);
-    if (val.length > 50) {
-      window.location.reload(); // Reload to trigger fetches with new token
-    }
-  };
+  const pathname = usePathname();
 
   return (
     <AppBar position="static" color="transparent" elevation={0} sx={{ borderBottom: 1, borderColor: "divider", mb: 4 }}>
       <Toolbar>
         <NotificationsIcon sx={{ mr: 2, color: "primary.main" }} />
         <Typography variant="h6" component="div" sx={{ flexGrow: 1, fontWeight: "bold" }}>
-          Campus Connect
+          Campus Notifications
         </Typography>
         <Box sx={{ display: "flex", gap: 2, alignItems: "center" }}>
-          <TextField 
-            size="small" 
-            placeholder="Paste your Bearer Token here..." 
-            value={tokenInput}
-            onChange={handleTokenChange}
-            sx={{ width: 250, bgcolor: "background.paper", borderRadius: 1 }}
-          />
-          <Button component={Link} href="/" color="inherit">
+          <Button 
+            component={Link} 
+            href="/" 
+            color="inherit"
+            variant={pathname === "/" ? "contained" : "text"}
+            sx={pathname === "/" ? { bgcolor: "primary.main", color: "background.default" } : {}}
+          >
             All Notifications
           </Button>
-          <Button component={Link} href="/priority" variant="outlined" color="primary">
+          <Button 
+            component={Link} 
+            href="/priority" 
+            variant={pathname === "/priority" ? "contained" : "outlined"} 
+            color="primary"
+            sx={pathname === "/priority" ? { color: "background.default" } : {}}
+          >
             Priority Inbox
           </Button>
         </Box>

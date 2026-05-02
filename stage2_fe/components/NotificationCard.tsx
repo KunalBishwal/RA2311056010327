@@ -1,13 +1,13 @@
 import { Card, CardContent, Typography, Chip, Box, IconButton, Tooltip } from "@mui/material";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
-import CircleIcon from "@mui/icons-material/Circle";
+import FiberNewIcon from "@mui/icons-material/FiberNew";
 
-
+// API returns uppercase field names: ID, Type, Message, Timestamp
 export interface Notification {
-  id: string;
-  type: string;
-  message: string;
-  created_at: string; // Assuming standard API format
+  ID: string;
+  Type: string;
+  Message: string;
+  Timestamp: string;
 }
 
 interface Props {
@@ -30,7 +30,13 @@ export default function NotificationCard({ notification, isRead, onMarkRead }: P
     }
   };
 
-  const formattedDate = new Date(notification.created_at).toLocaleString();
+  const formattedDate = (() => {
+    try {
+      return new Date(notification.Timestamp).toLocaleString();
+    } catch {
+      return notification.Timestamp;
+    }
+  })();
 
   return (
     <Card 
@@ -38,6 +44,8 @@ export default function NotificationCard({ notification, isRead, onMarkRead }: P
       sx={{ 
         mb: 2, 
         opacity: isRead ? 0.6 : 1,
+        borderLeft: isRead ? "4px solid transparent" : "4px solid",
+        borderLeftColor: isRead ? "transparent" : "primary.main",
         transition: "all 0.3s ease",
         "&:hover": {
           boxShadow: 3,
@@ -48,13 +56,13 @@ export default function NotificationCard({ notification, isRead, onMarkRead }: P
       <CardContent sx={{ pb: "16px !important" }}>
         <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", mb: 1 }}>
           <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-            {!isRead ? (
-              <CircleIcon color="primary" sx={{ fontSize: 12 }} />
-            ) : null}
+            {!isRead && (
+              <FiberNewIcon color="primary" sx={{ fontSize: 20 }} />
+            )}
             <Chip 
-              label={notification.type} 
+              label={notification.Type} 
               size="small" 
-              color={getTypeColor(notification.type)} 
+              color={getTypeColor(notification.Type)} 
               variant="filled"
             />
           </Box>
@@ -64,7 +72,7 @@ export default function NotificationCard({ notification, isRead, onMarkRead }: P
             </Typography>
             {!isRead && (
               <Tooltip title="Mark as Read">
-                <IconButton size="small" onClick={() => onMarkRead(notification.id)} color="primary">
+                <IconButton size="small" onClick={() => onMarkRead(notification.ID)} color="primary">
                   <CheckCircleIcon fontSize="small" />
                 </IconButton>
               </Tooltip>
@@ -72,7 +80,7 @@ export default function NotificationCard({ notification, isRead, onMarkRead }: P
           </Box>
         </Box>
         <Typography variant="body1" sx={{ mt: 1, fontWeight: isRead ? 'normal' : 'medium' }}>
-          {notification.message}
+          {notification.Message}
         </Typography>
       </CardContent>
     </Card>

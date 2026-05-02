@@ -3,12 +3,11 @@
 import { useState, useEffect, useCallback } from "react";
 import { 
   Container, Typography, Box, CircularProgress, Alert, 
-  Select, MenuItem, FormControl, InputLabel 
+  Select, MenuItem, FormControl, InputLabel, Pagination
 } from "@mui/material";
 import axios from "axios";
 import Navbar from "../../components/Navbar";
 import NotificationCard, { Notification } from "../../components/NotificationCard";
-import { getToken } from "../../utils/token";
 import { Log } from "../../logging_middleware/logger";
 
 export default function PriorityNotificationsPage() {
@@ -18,31 +17,27 @@ export default function PriorityNotificationsPage() {
   const [readIds, setReadIds] = useState<Set<string>>(new Set());
   
   // Filters
-  const [limit, setLimit] = useState<number>(5);
+  const [limit, setLimit] = useState<number>(10);
   const [typeFilter, setTypeFilter] = useState<string>("All");
+  const [page, setPage] = useState(1);
 
   const fetchPriorityNotifications = useCallback(async () => {
     setLoading(true);
+    setError(null);
     try {
-      Log("frontend", "info", "api", `Fetching priority notifications: limit=${limit}, type=${typeFilter}`);
-      const token = getToken();
+      Log("frontend", "info", "api", `Fetching priority notifications: limit=${limit}, type=${typeFilter}, page=${page}`);
       
-      let url = `/api/notifications?limit=${limit}`;
+      let url = `/api/notifications?limit=${limit}&page=${page}`;
       if (typeFilter !== "All") {
         url += `&notification_type=${typeFilter}`;
       }
 
-      const response = await axios.get(url, {
-        headers: {
-          Authorization: `Bearer ${token}`
-        }
-      });
+      // No auth header needed — proxy handles token server-side
+      const response = await axios.get(url);
       
       const data = response.data.notifications || response.data;
-      // In a real priority inbox, we'd sort by some weight. If the backend doesn't sort, we can sort it here or assume the backend handles it.
-      // The prompt asks to display limited top 'n' and filter on type using the query parameters.
       setNotifications(Array.isArray(data) ? data : []);
-      Log("frontend", "info", "api", `Successfully fetched priority notifications`);
+      Log("frontend", "info", "api", `Successfully fetched ${Array.isArray(data) ? data.length : 0} priority notifications`);
     } catch (err: unknown) {
       setError("Failed to fetch notifications. Please try again.");
       const errorMessage = err instanceof Error ? err.message : "Unknown error";
@@ -50,7 +45,7 @@ export default function PriorityNotificationsPage() {
     } finally {
       setLoading(false);
     }
-  }, [limit, typeFilter]);
+  }, [limit, typeFilter, page]);
 
   useEffect(() => {
     const savedReadIds = localStorage.getItem("readNotifications");
@@ -87,7 +82,7 @@ export default function PriorityNotificationsPage() {
                 <Select
                   value={limit}
                   label="Top N Limit"
-                  onChange={(e) => setLimit(Number(e.target.value))}
+                  onChange={(e) => { setLimit(Number(e.target.value)); setPage(1); }}
                 >
                   <MenuItem value={5}>Top 5</MenuItem>
                   <MenuItem value={10}>Top 10</MenuItem>
@@ -102,7 +97,7 @@ export default function PriorityNotificationsPage() {
                 <Select
                   value={typeFilter}
                   label="Notification Type"
-                  onChange={(e) => setTypeFilter(e.target.value)}
+                  onChange={(e) => { setTypeFilter(e.target.value); setPage(1); }}
                 >
                   <MenuItem value="All">All Types</MenuItem>
                   <MenuItem value="Placement">Placement</MenuItem>
@@ -126,12 +121,21 @@ export default function PriorityNotificationsPage() {
           <Box>
             {notifications.map((notif) => (
               <NotificationCard 
-                key={notif.id} 
+                key={notif.ID} 
                 notification={notif} 
-                isRead={readIds.has(notif.id)}
+                isRead={readIds.has(notif.ID)}
                 onMarkRead={handleMarkRead}
               />
             ))}
+            <Box sx={{ display: "flex", justifyContent: "center", mt: 4, mb: 4 }}>
+              <Pagination 
+                count={5} 
+                page={page} 
+                onChange={(_, v) => setPage(v)} 
+                color="primary"
+                size="large"
+              />
+            </Box>
           </Box>
         )}
       </Container>

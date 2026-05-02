@@ -2,8 +2,6 @@
 
 import { ThemeProvider, CssBaseline } from "@mui/material";
 import theme from "./theme";
-import { useEffect } from "react";
-import { setToken } from "../utils/token";
 
 export default function RootLayout({
   children,
@@ -13,7 +11,9 @@ export default function RootLayout({
   return (
     <html lang="en">
       <head>
-        <title>Campus Notifications | Stage 2</title>
+        <title>Campus Notifications</title>
+        <meta name="description" content="Campus notification platform with priority inbox for placements, events, and results" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
       </head>
       <body>
         <ThemeProvider theme={theme}>
